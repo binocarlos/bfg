@@ -150,6 +150,22 @@ var disk = bfg.rackspace(...);
 app.use('/filestore', disk.handler());
 ```
 
+## var folder = disk.folder(basepath)
+
+Return a new disk that will save and load files relative to the given basepath
+
+This is useful for partitioning a container for serveral projects.
+
+```js
+var app = express();
+var disk = bfg.rackspace(...);
+var folder = disk.folder('/subfolder')
+
+fs.createReadStream(__dirname + '/hello.txt').pipe(disk.createWriteStream('/hello.txt'));
+```
+
+The file is saved to '/subfolder/hello.txt'
+
 ## events
 
 ## disk.emit('upload', filepath)

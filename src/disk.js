@@ -2,21 +2,26 @@ var EventEmitter = require('events').EventEmitter;
 var util = require('util');
 var formparser = require('./formparser');
 
-function Disk(driver, container){
+function Disk(driver, container, folder){
 	EventEmitter.call(this);
 	this._driver = driver;
 	this._container = container;
+	this._folder = folder || '';
 }
 
 module.exports = Disk;
 
 util.inherits(Disk, EventEmitter);
 
+Disk.prototype.folder = function(basepath){
+	return new Disk(this._driver, this._container, basepath);
+}
+
 Disk.prototype.createReadStream = function(filepath){
 	var self = this;
 	var rs = this._driver.download({
     container: this._container,
-    remote: filepath
+    remote: this._folder + filepath
 	})
 
 	rs.on('end', function(){
@@ -30,7 +35,7 @@ Disk.prototype.createWriteStream = function(filepath){
 	var self = this;
 	var ws = this._driver.upload({
     container: this._container,
-    remote: filepath
+    remote: this._folder + filepath
 	})
 
 	ws.on('end', function(){

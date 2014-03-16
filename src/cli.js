@@ -9,6 +9,7 @@ program
   .option('-k, --apikey [value]', 'Rackspace Api Key', '')
   .option('-r, --region [value]', 'Rackspace Region', '')
   .option('-c, --container [value]', 'Rackspace Container', '')
+  .option('-f, --folder [value]', 'Remote sub-folder', '')
   .version(version)
 
 function get_disk(){
@@ -16,7 +17,8 @@ function get_disk(){
     username:program.username,
     apikey:program.apikey,
     region:program.region,
-    container:program.container
+    container:program.container,
+    folder:program.folder
   });
 
   return bfg.rackspace(options);
