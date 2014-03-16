@@ -1,6 +1,6 @@
 {
   "name": "bfg",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Big Friendly Gateway creates a read and write stream to various cloud storage providers",
   "main": "src/index.js",
   "bin": {
