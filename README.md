@@ -83,6 +83,7 @@ Options:
   -k, --apikey [value]     Rackspace Api Key
   -r, --region [value]     Rackspace Region
   -c, --container [value]  Rackspace Container
+  -f, --folder [value]     Rackspace Folder
   -V, --version            output the version number
 ```
 
@@ -92,6 +93,8 @@ These options can also be configured from the envionment variables:
  * RACKSPACE_APIKEY
  * RACKSPACE_REGION
  * RACKSPACE_CONTAINER
+ * RACKSPACE_FOLDER
+ * RACKSPACE_CDN
 
 Assuming the environment variables are set - here is an example of streaming a local file to rackspace:
 
@@ -150,6 +153,24 @@ var disk = bfg.rackspace(...);
 app.use('/filestore', disk.handler());
 ```
 
+## CDN
+
+You can instruct bfg to redirect GET requests to the CDN for the container.
+
+First you must pass the cdn option when you make a disk.
+
+Second pass true to the handler function to get a handler that will redirect rather than stream directly:
+
+```js
+var disk = bfg.rackspace({
+  username:...,
+  etc:...,
+  cdn:'https://bf9164d97a0cd15823f4-4dba8edb0fc2b3e5cc0f769b1eea32ba.ssl.cf3.rackcdn.com'
+})
+
+app.use('/filestore', disk.handler(true));
+```
+
 ## var folder = disk.folder(basepath)
 
 Return a new disk that will save and load files relative to the given basepath
@@ -165,6 +186,7 @@ fs.createReadStream(__dirname + '/hello.txt').pipe(disk.createWriteStream('/hell
 ```
 
 The file is saved to '/subfolder/hello.txt'
+
 
 ## events
 

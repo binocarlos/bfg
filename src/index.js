@@ -5,6 +5,6 @@ module.exports = {
 	rackspace:function(options){
 		options = options || {};
 		var driver = Rackspace(options);
-		return new Disk(driver, options.container, options.folder);
+		return new Disk(driver, options);
 	}
 }

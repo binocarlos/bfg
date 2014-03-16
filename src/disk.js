@@ -2,11 +2,14 @@ var EventEmitter = require('events').EventEmitter;
 var util = require('util');
 var formparser = require('./formparser');
 
-function Disk(driver, container, folder){
+function Disk(driver, options){
 	EventEmitter.call(this);
 	this._driver = driver;
-	this._container = container;
-	this._folder = folder || '';
+	options = options || {}
+
+	this._options = options;
+	this._container = options.container;
+	this._folder = options.folder || '';
 }
 
 module.exports = Disk;
@@ -14,7 +17,9 @@ module.exports = Disk;
 util.inherits(Disk, EventEmitter);
 
 Disk.prototype.folder = function(basepath){
-	return new Disk(this._driver, this._container, basepath);
+	var newoptions = JSON.parse(JSON.stringify(this._options));
+	newoptions.folder = basepath;
+	return new Disk(this._driver, newoptions);
 }
 
 Disk.prototype.createReadStream = function(filepath){
@@ -59,8 +64,12 @@ Disk.prototype.upload = function(filepath, source, res){
 	return uploader;
 }
 
-Disk.prototype.handler = function(){
+Disk.prototype.handler = function(cdn){
 	var self = this;
+
+	if(cdn && !this._options.cdn){
+		throw new Error('cdn option required for CDN redirects');
+	}
 	return function(req, res){
 		if(req.method=='POST'){
 			if(req.headers['content-type'].indexOf('multipart/form-data')==0){
@@ -78,14 +87,23 @@ Disk.prototype.handler = function(){
 			}
 		}
 		else{
-			var remote = self.createReadStream(req.url);
+			if(cdn){
+				res.writeHead(302, {
+				  'Location': this._options.cdn + req.url
+				});
+				res.end();
+			}
+			else{
+				var remote = self.createReadStream(req.url);
 
-			remote.on('error', function(error){
-				res.statusCode = 500;
-				res.end(error.toString())
-			})
+				remote.on('error', function(error){
+					res.statusCode = 500;
+					res.end(error.toString())
+				})
 
-			remote.pipe(res);
+				remote.pipe(res);
+			}
+			
 		}
 	}
 }
