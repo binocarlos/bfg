@@ -1,6 +1,7 @@
 var EventEmitter = require('events').EventEmitter;
 var util = require('util');
 var formparser = require('./formparser');
+var url = require('url');
 
 function Disk(driver, options){
 	EventEmitter.call(this);
@@ -71,6 +72,8 @@ Disk.prototype.handler = function(cdn){
 		throw new Error('cdn option required for CDN redirects');
 	}
 	return function(req, res){
+		var pathname = url.parse(req.url).pathname;
+		
 		if(req.method=='POST'){
 			if(req.headers['content-type'].indexOf('multipart/form-data')==0){
 				formparser(req, function(error, filename, file){
@@ -79,22 +82,23 @@ Disk.prototype.handler = function(cdn){
 						res.end(error);
 						return;
 					}
-					self.upload(req.url + '/' + filename, file, res);
+					self.upload(pathname + '/' + filename, file, res);
 				})
 			}
 			else{
-				self.upload(req.url, req, res);
+				self.upload(pathname, req, res);
 			}
 		}
 		else{
-			if(cdn){
+			if(cdn && req.url.indexOf('nocdn=y')<0){
+
 				res.writeHead(302, {
-				  'Location': self._options.cdn + '/' + self._options.folder + req.url
+				  'Location': self._options.cdn + '/' + self._options.folder + pathname
 				});
 				res.end();
 			}
 			else{
-				var remote = self.createReadStream(req.url);
+				var remote = self.createReadStream(pathname);
 
 				remote.on('error', function(error){
 					res.statusCode = 500;
