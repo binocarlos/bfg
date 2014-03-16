@@ -37,7 +37,7 @@ describe('bfg', function(){
 
 		it('should upload and download a text file', function(done){
 
-			this.timeout(5000);
+			this.timeout(10000);
 
 			var disk = getdisk();
 
@@ -63,8 +63,6 @@ describe('bfg', function(){
 
 			function download(downloaddone){
 
-				console.log('-------------------------------------------');
-				console.log('do download');
 				var remotesource = disk.createReadStream('/hello.txt');
 				var localsink = fs.createWriteStream(__dirname + '/fixtures/hello.back.txt');
 
@@ -73,17 +71,17 @@ describe('bfg', function(){
 				})
 
 				remotesource.on('end', function(){
-					console.log('-------------------------------------------');
-					console.log('remotesource end');
-					var contentA = fs.readFileSync(__dirname + '/fixtures/hello.txt', 'utf8');
-					var contentB = fs.readFileSync(__dirname + '/fixtures/hello.back.txt', 'utf8');
 
-					console.log(contentA);
-					console.log(contentB);
+					setTimeout(function(){
 
-					contentA.should.equal(contentB);
+						var contentA = fs.readFileSync(__dirname + '/fixtures/hello.txt', 'utf8');
+						var contentB = fs.readFileSync(__dirname + '/fixtures/hello.back.txt', 'utf8');
 
-					downloaddone();
+						contentA.should.equal(contentB);
+
+						downloaddone();
+					}, 500)
+
 				})
 
 				remotesource.pipe(localsink);
