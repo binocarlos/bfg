@@ -54,7 +54,7 @@ Disk.prototype.upload = function(filepath, source, res){
 	var self = this;
 	var uploader = self.createWriteStream(filepath);
 	uploader.on('end', function(){
-		res.end(req.url)
+		res.end(filepath)
 	})
 	uploader.on('error', function(){
 		res.statusCode = 500;
@@ -89,7 +89,7 @@ Disk.prototype.handler = function(cdn){
 		else{
 			if(cdn){
 				res.writeHead(302, {
-				  'Location': this._options.cdn + req.url
+				  'Location': self._options.cdn + '/' + self._options.folder + req.url
 				});
 				res.end();
 			}
