@@ -23,7 +23,7 @@ var bfg = require('bfg');
 
 var disk = bfg.rackspace({
 	username:'...',
-	password:'...',
+	apikey:'...',
 	region:'LON',
 	container:'my'
 })
