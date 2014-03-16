@@ -2,3 +2,164 @@ bfg
 ===
 
 Big Friendly Gateway creates a read and write stream to various cloud storage providers
+
+BFG is also the [Big Friendly Giant](http://en.wikipedia.org/wiki/The_BFG)
+
+## installation
+
+```
+$ npm install bfg
+```
+
+## usage
+
+bfg will create a WriteStream for uploads and a ReadStream for downloads to cloud storage providers.
+
+Upload a local file to rackspace:
+
+```js
+var fs = require('fs');
+var bfg = require('bfg');
+
+var disk = bfg.rackspace({
+	username:'...',
+	password:'...',
+	region:'LON',
+	container:'my'
+})
+
+var localfile = fs.createReadStream(__dirname + '/hello.txt');
+var remotefile = disk.createWriteStream('/hello.txt');
+
+localfile.on('end', function(){
+	console.log('file uploaded!');
+})
+
+localfile.pipe(remotefile);
+```
+
+Because bfg is streaming - you can use pipe readstreams to HTTP responses:
+
+```js
+var disk = bfg.rackspace(...);
+
+// proxy any request to /filestore to rackspace to serve
+app.use('/filestore', function(req, res){
+	disk.createReadStream(req.url).pipe(res);
+})
+```
+
+bfg will also stream form uploads that contain files - this is useful for file uploads that you want to stream directly to the cloud provider:
+
+```js
+var app = express();
+var disk = bfg.rackspace(...);
+
+app.use('/filestore', disk.handler());
+```
+
+## cli
+
+bfg can be used on the cli if you install it globally:
+
+```
+$ npm install bfg -g
+```
+
+you can then pipe files to and from bfg - the options are configured on the command line:
+
+```
+Usage: bfg [options] [command]
+
+Commands:
+
+  upload                 upload a file
+  download               download a file
+
+Options:
+
+  -h, --help               output usage information
+  -u, --username [value]   Rackspace Username
+  -k, --apikey [value]     Rackspace Api Key
+  -r, --region [value]     Rackspace Region
+  -c, --container [value]  Rackspace Container
+  -V, --version            output the version number
+```
+
+These options can also be configured from the envionment variables:
+
+ * RACKSPACE_USERNAME
+ * RACKSPACE_APIKEY
+ * RACKSPACE_REGION
+ * RACKSPACE_CONTAINER
+
+Assuming the environment variables are set - here is an example of streaming a local file to rackspace:
+
+```
+$ cat helloworld.txt | bfg upload /helloworld.txt
+```
+
+And streaming from rackspace to a local file:
+
+```
+$ bfg download /helloworld.txt > helloworld.txt
+```
+
+## api
+
+## var disk = bfg.rackspace({options:...})
+
+Create a new disk from one of the cloud providers bfg supports.  The options vary depending on provider:
+
+### rackspace
+
+ * username - the rackspace username
+ * apikey - the rackspace apikey
+ * region - the region in which your containers live (e.g. LON)
+ * container - the name of the container to connect to
+
+## var rs = disk.createReadStream(filepath)
+
+Create a ReadStream from the contents of the remote filepath
+
+```js
+var disk = bfg.rackspace(...);
+
+disk.createReadStream('/hello.txt').pipe(fs.createWriteStream(__dirname + '/hello.txt'));
+```
+
+## var ws = disk.createWriteStream(filepath)
+
+Create a WriteStream for the remote filepath
+
+```js
+var disk = bfg.rackspace(...);
+
+fs.createReadStream(__dirname + '/hello.txt').pipe(disk.createWriteStream('/hello.txt'));
+
+```
+
+## var handler = disk.handler()
+
+Create a HTTP handler that will GET or POST requests via the appropriate stream
+
+```js
+var app = express();
+var disk = bfg.rackspace(...);
+
+app.use('/filestore', disk.handler());
+```
+
+## events
+
+## disk.emit('upload', filepath)
+
+triggered when a file is uploaded to a disk
+
+## disk.emit('download', filepath)
+
+triggered when a file is downloaded from a disk
+
+## license
+
+MIT
